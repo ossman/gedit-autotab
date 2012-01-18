@@ -251,13 +251,16 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     indent_count = {'tabs':0, 2:0, 3:0, 4:0, 8:0}
     seen_tabs = 0
     seen_spaces = 0
+    prev_indent = 0
 
     for line in text.splitlines():
       if len(line) == 0 or not line[0].isspace():
+        prev_indent = 0
         continue
 
       if line[0] == '\t':
         indent_count['tabs'] += 1
+        prev_indent = 0
         seen_tabs += 1
         continue
       elif line[0] == ' ':
@@ -268,12 +271,30 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
         if line[indent] != ' ':
           break
 
+      # First pass: indented exactly one step from the previous line?
       for spaces in indent_count.keys():
         if type(spaces) is not int:
           continue
 
-        if (indent % spaces) == 0:
-          indent_count[spaces] += 1
+        if (indent % spaces) != 0:
+          continue
+
+        if abs(indent - prev_indent) != spaces:
+          continue
+
+        indent_count[spaces] += 1
+        break
+      else:
+        # Second pass: indentation ambigious; add to all candidates
+        if type(spaces) is not int:
+          continue
+
+        if (indent % spaces) != 0:
+          continue
+
+        indent_count[spaces] += 1
+
+      prev_indent = indent
 
     # no indentations detected
     if sum(indent_count.values()) == 0:
