@@ -247,7 +247,10 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
       return
     text = doc.get_text(start, end, True)
 
-    indent_count = {'tabs':0, 2:0, 3:0, 4:0, 8:0}
+    # Special marker so all keys are ints
+    TABS = 666
+
+    indent_count = {TABS:0, 2:0, 3:0, 4:0, 8:0}
     seen_tabs = 0
     seen_spaces = 0
     prev_indent = 0
@@ -258,7 +261,7 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
         continue
 
       if line[0] == '\t':
-        indent_count['tabs'] += 1
+        indent_count[TABS] += 1
         prev_indent = 0
         seen_tabs += 1
         continue
@@ -272,7 +275,7 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
 
       # First pass: indented exactly one step from the previous line?
       for spaces in indent_count.keys():
-        if type(spaces) is not int:
+        if spaces == TABS:
           continue
 
         if (indent % spaces) != 0:
@@ -310,14 +313,14 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     # need to prioritise larger indentations when there is a tie.
     winner = None
 
-    keys = indent_count.keys()
+    keys = list(indent_count.keys())
     keys.sort()
     keys.reverse()
     for key in keys:
       if (winner is None) or (indent_count[key] > indent_count[winner]):
         winner = key
 
-    if winner == 'tabs':
+    if winner == TABS:
       self.update_tabs(self.tabs_width, False)
     else:
       self.update_tabs(winner, True)
