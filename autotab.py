@@ -224,18 +224,6 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
       self.update_status()
       return
 
-    # Modelines plugin compatibility, if ModelineOptions has been set with
-    # any tab related data, we assume Modelines has done the right thing and
-    # just update our UI with the existing settings.
-    if hasattr(view, 'ModelineOptions'):
-      modeline = view.ModelineOptions
-      if modeline.has_key("tabs-width") or modeline.has_key("use-tabs"):
-        self.update_status()
-        return
-
-    # End of Modelines stuff,
-    # start of Auto Tabs own stuff
-
     # Special case for makefiles, so the plugin uses tabs even for the empty file:    
     if doc.get_mime_type() == "text/x-makefile" or doc.get_short_name_for_display() == "Makefile":
       self.update_tabs(self.tabs_width, False)
