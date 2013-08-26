@@ -1,9 +1,9 @@
 [Plugin]
-Loader=python
+Loader=python3
 Module=autotab
 IAge=3
 Name=Auto Tab
 Description=Automatically detect tab preferences for source files.
 Authors=Kristoffer Lundén <kristoffer.lunden@gmail.com>, Lars Uebernickel (larsuebernickel@gmx.de)
-Copyright=Copyright © 2007 Kristoffer Lundén <kristoffer.lunden@gmail.com>, Lars Uebernickel (larsuebernickel@gmx.de)
-Website=http://gedit-autotab.googlecode.com/
+Copyright=Copyright © 2007 Kristoffer Lundén <kristoffer.lunden@gmail.com>, Lars Uebernickel (larsuebernickel@gmx.de), Pierre Ossman <ossman@cendio.se>
+Website=https://github.com/ossman/gedit-autotab
