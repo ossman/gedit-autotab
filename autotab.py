@@ -238,7 +238,13 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     # Special marker so all keys are ints
     TABS = 666
 
-    indent_count = {TABS:0, 2:0, 3:0, 4:0, 8:0}
+    # Needs to be ordered from largest to smallest
+    indent_levels = (TABS, 8, 4, 3, 2)
+
+    indent_count = {}
+    for spaces in indent_levels:
+      indent_count[spaces] = 0
+
     seen_tabs = 0
     seen_spaces = 0
     prev_indent = 0
@@ -262,7 +268,9 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
           break
 
       # First pass: indented exactly one step from the previous line?
-      for spaces in indent_count.keys():
+      #             larger steps are favoured over smaller ones as
+      #             they might be multiples of a smaller one
+      for spaces in indent_levels:
         if spaces == TABS:
           continue
 
@@ -300,11 +308,7 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     # Since some indentation steps may be multiples of others, we
     # need to prioritise larger indentations when there is a tie.
     winner = None
-
-    keys = list(indent_count.keys())
-    keys.sort()
-    keys.reverse()
-    for key in keys:
+    for key in indent_levels:
       if (winner is None) or (indent_count[key] > indent_count[winner]):
         winner = key
 
