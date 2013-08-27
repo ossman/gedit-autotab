@@ -284,13 +284,14 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
         break
       else:
         # Second pass: indentation ambigious; add to all candidates
-        if type(spaces) is not int:
-          continue
+        for spaces in indent_levels:
+          if type(spaces) is not int:
+            continue
 
-        if (indent % spaces) != 0:
-          continue
+          if (indent % spaces) != 0:
+            continue
 
-        indent_count[spaces] += 1
+          indent_count[spaces] += 1
 
       prev_indent = indent
 
