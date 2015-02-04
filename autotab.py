@@ -48,7 +48,7 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
 
     for view in self.window.get_views(): 
       self.connect_handlers(view)
-      self.auto_tab(view.get_buffer(), None, view)
+      self.auto_tab(view.get_buffer(), view)
 
     tab_added_id = self.window.connect("tab_added", lambda w, t: self.connect_handlers(t.get_view()))
     self.window.AutoTabPluginHandlerId = tab_added_id
@@ -213,10 +213,7 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     self.update_status()
 
   # Main workhorse, identify what tabs we should use and use them.
-  def auto_tab(self, doc, error, view):
-    if error is not None:
-      pass
-
+  def auto_tab(self, doc, view):
     # Other plugins compatibility, other plugins can do
     # view.AutoTabSkip = True
     # and Auto Tab will skip that document as long as this value is true.
