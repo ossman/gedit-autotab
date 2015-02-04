@@ -181,34 +181,26 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     self.spaces_instead_of_tabs = settings.get_boolean("insert-spaces")
 
   # Update the values and set a new statusbar message  
-  def update_tabs(self, size, space):
-    view = self.window.get_active_view()
-    if view:
-      view.set_tab_width(size)
-      view.set_insert_spaces_instead_of_tabs(space)
-      self.update_status()
+  def update_tabs(self, view, size, space):
+    view.set_tab_width(size)
+    view.set_insert_spaces_instead_of_tabs(space)
+    self.update_status(view)
 
   # Statusbar message
-  def update_status(self):
-    view = self.window.get_active_view()
-    if view:
-      space = view.get_insert_spaces_instead_of_tabs()
-      size = view.get_tab_width()
-      if space:
-        message = "%i Spaces" % size
+  def update_status(self, view):
+    space = view.get_insert_spaces_instead_of_tabs()
+    size = view.get_tab_width()
+    if space:
+      message = "%i Spaces" % size
+    else:
+      message = "Tabs"
+    if self.message_id:
+      if hasattr(self.statusbar, 'remove_message'):
+        self.statusbar.remove_message(self.context_id, self.message_id)
       else:
-        message = "Tabs"
-      if self.message_id:
-        if hasattr(self.statusbar, 'remove_message'):
-          self.statusbar.remove_message(self.context_id, self.message_id)
-        else:
-          self.statusbar.remove(self.context_id, self.message_id)
+        self.statusbar.remove(self.context_id, self.message_id)
 
-      self.message_id = self.statusbar.push(self.context_id, "Indentation: %s" % message)
-
-  # Make sure correct tabs are displayed
-  def do_update_state(self):
-    self.update_status()
+    self.message_id = self.statusbar.push(self.context_id, "Indentation: %s" % message)
 
   # Main workhorse, identify what tabs we should use and use them.
   def auto_tab(self, doc, view):
@@ -216,12 +208,12 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     # view.AutoTabSkip = True
     # and Auto Tab will skip that document as long as this value is true.
     if hasattr(view, 'AutoTabSkip') and view.AutoTabSkip:
-      self.update_status()
+      self.update_status(view)
       return
 
     # Special case for makefiles, so the plugin uses tabs even for the empty file:    
     if doc.get_mime_type() == "text/x-makefile" or doc.get_short_name_for_display() == "Makefile":
-      self.update_tabs(self.tabs_width, False)
+      self.update_tabs(view, self.tabs_width, False)
       return
 
     start, end = doc.get_bounds()
@@ -296,9 +288,9 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
       # can't guess at size, so using default
       if seen_tabs or seen_spaces:
         if seen_tabs > seen_spaces:
-          self.update_tabs(self.tabs_width, False)
+          self.update_tabs(view, self.tabs_width, False)
         else:
-          self.update_tabs(self.tabs_width, True)
+          self.update_tabs(view, self.tabs_width, True)
       return    
 
     # Since some indentation steps may be multiples of others, we
@@ -309,6 +301,6 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
         winner = key
 
     if winner == TABS:
-      self.update_tabs(self.tabs_width, False)
+      self.update_tabs(view, self.tabs_width, False)
     else:
-      self.update_tabs(winner, True)
+      self.update_tabs(view, winner, True)
