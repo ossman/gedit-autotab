@@ -175,12 +175,10 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
   # If default tab size changes
   def new_tabs_size(self, settings, key=None):
     self.tabs_width = settings.get_value("tabs-size").get_uint32()
-    self.update_tabs(self.tabs_width, self.spaces_instead_of_tabs)
 
   # If default space/tabs changes
   def new_insert_spaces(self, settings, key=None):
     self.spaces_instead_of_tabs = settings.get_boolean("insert-spaces")
-    self.update_tabs(self.tabs_width, self.spaces_instead_of_tabs)
 
   # Update the values and set a new statusbar message  
   def update_tabs(self, size, space):
