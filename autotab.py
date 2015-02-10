@@ -33,11 +33,6 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     self.spaces_instead_of_tabs = False
     self.tabs_width = 2
 
-    # Prime the statusbar
-    self.statusbar = self.window.get_statusbar()
-    self.context_id = self.statusbar.get_context_id("AutoTab")
-    self.message_id = None
-
     settings = Gio.Settings("org.gnome.gedit.preferences.editor")
     
     self.new_tabs_size(settings)
@@ -59,12 +54,6 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
 
     for view in self.window.get_views():
       self.disconnect_handlers(view)
-
-    if self.message_id:
-      if hasattr(self.statusbar, 'remove_message'):
-        self.statusbar.remove_message(self.context_id, self.message_id)
-      else:
-        self.statusbar.remove(self.context_id, self.message_id)
 
 
   def connect_handlers(self, view):
@@ -94,23 +83,6 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
   def update_tabs(self, view, size, space):
     view.set_tab_width(size)
     view.set_insert_spaces_instead_of_tabs(space)
-    self.update_status(view)
-
-  # Statusbar message
-  def update_status(self, view):
-    space = view.get_insert_spaces_instead_of_tabs()
-    size = view.get_tab_width()
-    if space:
-      message = "%i Spaces" % size
-    else:
-      message = "Tabs"
-    if self.message_id:
-      if hasattr(self.statusbar, 'remove_message'):
-        self.statusbar.remove_message(self.context_id, self.message_id)
-      else:
-        self.statusbar.remove(self.context_id, self.message_id)
-
-    self.message_id = self.statusbar.push(self.context_id, "Indentation: %s" % message)
 
   # Main workhorse, identify what tabs we should use and use them.
   def auto_tab(self, doc, view):
@@ -118,7 +90,6 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     # view.AutoTabSkip = True
     # and Auto Tab will skip that document as long as this value is true.
     if hasattr(view, 'AutoTabSkip') and view.AutoTabSkip:
-      self.update_status(view)
       return
 
     # Special case for makefiles, so the plugin uses tabs even for the empty file:    
