@@ -24,10 +24,10 @@ from gi.repository import GObject, Gio, Gedit
 import operator
 
 # Main class
-class AutoTab(GObject.Object, Gedit.WindowActivatable):
+class AutoTab(GObject.Object, Gedit.ViewActivatable):
   __gtype_name__ = "AutoTab"
 
-  window = GObject.property(type=Gedit.Window)
+  view = GObject.property(type=Gedit.View)
   
   def do_activate(self):
     self.spaces_instead_of_tabs = False
@@ -41,31 +41,17 @@ class AutoTab(GObject.Object, Gedit.WindowActivatable):
     settings.connect("changed::tabs-size", self.new_tabs_size)
     settings.connect("changed::insert-spaces", self.new_insert_spaces)
 
-    for view in self.window.get_views(): 
-      self.connect_handlers(view)
-      self.auto_tab(view.get_buffer(), view)
-
-    tab_added_id = self.window.connect("tab_added", lambda w, t: self.connect_handlers(t.get_view()))
-    self.window.AutoTabPluginHandlerId = tab_added_id
-
-  def do_deactivate(self):
-    self.window.disconnect(self.window.AutoTabPluginHandlerId)
-    self.window.AutoTabPluginHandlerId = None
-
-    for view in self.window.get_views():
-      self.disconnect_handlers(view)
-
-
-  def connect_handlers(self, view):
-    doc = view.get_buffer()
+    doc = self.view.get_buffer()
     # Using connect_after() because we want other plugins to do their
     # thing first.
-    loaded_id = doc.connect_after("loaded", self.auto_tab, view)
-    saved_id  = doc.connect_after("saved", self.auto_tab, view)
+    loaded_id = doc.connect_after("loaded", self.auto_tab, self.view)
+    saved_id  = doc.connect_after("saved", self.auto_tab, self.view)
     doc.AutoTabPluginHandlerIds = (loaded_id, saved_id)
 
-  def disconnect_handlers(self, view):
-    doc = view.get_buffer()
+    self.auto_tab(self.view.get_buffer(), self.view)
+
+  def do_deactivate(self):
+    doc = self.view.get_buffer()
     loaded_id, saved_id = doc.AutoTabPluginHandlerIds
     doc.disconnect(loaded_id)
     doc.disconnect(saved_id)
